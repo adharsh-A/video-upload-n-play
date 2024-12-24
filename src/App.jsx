@@ -17,7 +17,7 @@ const App = () => {
     const hasToastBeenShown = localStorage.getItem('serverRestartToastShown');
     
     if (!hasToastBeenShown) {
-      fetch("https://talent-finder-backend.onrender.com/api/users")
+      fetch("https://video-upload-n-play-backend.onrender.com/api/users")
       .then(response => {
         if (!response.ok) {
           throw new Error('Server not responding');
@@ -25,7 +25,7 @@ const App = () => {
       })
       .catch(error => {
         console.error('Failed to wake up server:', error);
-      });      toast("Server Restarting,wait a moment")
+      });      toast("Server Restarting,wait about 50 sec to wake up")
       
       // Mark that toast has been shown
       localStorage.setItem('serverRestartToastShown', 'true');
