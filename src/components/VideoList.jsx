@@ -61,11 +61,14 @@
   useEffect(() => {
   const fetchVideo = async () => {
     try {
+      toast.loading("Fetching videos...");
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/videos`);
       const data = response.data;
       setVideos(data);
     } catch (error) {
       console.error('Fetch video error:', error);
+    }finally{
+      toast.dismiss();
     }
   }
   fetchVideo();
