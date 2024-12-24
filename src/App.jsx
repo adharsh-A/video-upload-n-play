@@ -15,22 +15,32 @@ import { useEffect } from 'react';
 const App = () => {
   useEffect(() => {
     const hasToastBeenShown = localStorage.getItem('serverRestartToastShown');
-    
+  
     if (!hasToastBeenShown) {
       fetch("https://video-upload-n-play-backend.onrender.com/api/users")
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Server not responding');
-        }
-      })
-      .catch(error => {
-        console.error('Failed to wake up server:', error);
-      });      toast("Server Restarting,wait about 50 sec to wake up")
-      
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Server not responding');
+          }
+        })
+        .catch(error => {
+          console.error('Failed to wake up server:', error);
+        });
+  
+      toast("Server Restarting, wait about 50 sec to wake up");
+  
       // Mark that toast has been shown
       localStorage.setItem('serverRestartToastShown', 'true');
+  
+      // Set timeout to remove the toast and reset the flag after 2 minutes
+      setTimeout(() => {
+        localStorage.removeItem('serverRestartToastShown');
+        // Dismiss toast (if using a library like Toastify)
+        toast.dismiss();
+      }, 120000); // 2 minutes = 120,000 milliseconds
     }
   }, []);
+  
   return (
     <Router>
       <Navbar />
