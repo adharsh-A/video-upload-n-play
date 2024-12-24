@@ -8,6 +8,7 @@ const VideoList = lazy(() => import('./components/VideoList').then(module => ({ 
 const VideoPlayer = lazy(() => import('./components/VideoList').then(module => ({ default: module.VideoPlayer })));
 import Loader from './components/ui/Loader';
 import { Toaster, toast } from 'sonner'
+import { useEffect } from 'react';
 
 
 // App Component
