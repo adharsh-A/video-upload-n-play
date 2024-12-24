@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Upload, Film, Menu, X } from 'lucide-react';
+import { Upload, Film, Menu, X, Github } from 'lucide-react';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -10,9 +10,11 @@ const Navbar = () => {
     return location.pathname === path;
   };
 
-  const NavLink = ({ to, icon: Icon, children }) => (
+  const NavLink = ({ to, icon: Icon, children, external }) => (
     <Link
       to={to}
+      target={external ? "_blank" : "_self"}
+      rel={external ? "noopener noreferrer" : ""}
       className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
         isActivePath(to)
           ? 'bg-blue-500/10 text-blue-400'
@@ -38,7 +40,7 @@ const Navbar = () => {
             </div>
             <span>VideoHub</span>
           </Link>
-
+        
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-2">
             <NavLink to="/" icon={Upload}>
@@ -46,6 +48,9 @@ const Navbar = () => {
             </NavLink>
             <NavLink to="/videos" icon={Film}>
               Videos
+            </NavLink>
+            <NavLink to="https://github.com/adharsh-a" icon={Github} external>
+              GitHub
             </NavLink>
           </div>
 
@@ -71,6 +76,9 @@ const Navbar = () => {
             <NavLink to="/videos" icon={Film}>
               Videos
             </NavLink>
+            <NavLink to="https://github.com/adharsh-a" icon={Github} external>
+              GitHub
+            </NavLink>
           </div>
         )}
       </div>
@@ -78,4 +86,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Navbar;    
