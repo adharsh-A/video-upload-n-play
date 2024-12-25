@@ -25,24 +25,26 @@ const UploadForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     toast.loading("Uploading...");
-
+    
+    const controller = new AbortController(); // Create AbortController
+    const signal = controller.signal;
+  
     const form = new FormData();
     form.append("title", formData.title);
     form.append("description", formData.description);
     form.append("thumbnail", formData.thumbnail);
     form.append("video", formData.video);
-
+  
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/upload`,
         form,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
+          signal, // Attach signal
         }
       );
-
+  
       if (response.status === 201) {
         const result = response.data;
         console.log("Upload successful:", result);
@@ -53,44 +55,66 @@ const UploadForm = () => {
         toast.error("Upload failed");
       }
     } catch (error) {
-      console.error("Upload error:", error);
-      if (error.response) {
-        alert(`Error: ${error.response.data.message}`);
+      if (error.name === "CanceledError") {
+        console.log("Request canceled:", error.message);
       } else {
-        alert("An error occurred. Please try again.");
+        console.error("Upload error:", error);
+        alert(error.response?.data.message || "An error occurred. Please try again.");
       }
     } finally {
       toast.dismiss();
     }
+  
+    // Cleanup function
+    return () => controller.abort();
   };
-
+  
   const handleFileChange = (type, file) => {
     if (file) {
       if (type === "thumbnail") {
-
         const reader = new FileReader();
         reader.onloadend = () => {
           setThumbnailPreview(reader.result);
         };
         reader.readAsDataURL(file);
+  
+        // Abort FileReader if the component unmounts
+        const cleanupReader = () => reader.abort();
+        return cleanupReader;
       }
       setFormData({ ...formData, [type]: file });
     }
   };
   useEffect(() => {
+    let isMounted = true;
+  
     if (formData.thumbnail) {
-      setFileStatus((prev) => ({ ...prev, thumbnail: "Thumbnail updated" }));
-      toast.success("Thumbnail updated");
+      if (isMounted) {
+        setFileStatus((prev) => ({ ...prev, thumbnail: "Thumbnail updated" }));
+        toast.success("Thumbnail updated");
+      }
     }
+  
+    return () => {
+      isMounted = false; // Prevent state updates on unmounted component
+    };
   }, [formData.thumbnail]);
-
+  
   useEffect(() => {
+    let isMounted = true;
+  
     if (formData.video) {
-      setFileStatus((prev) => ({ ...prev, video: "Video updated" }));
-      toast.success("Video updated");
+      if (isMounted) {
+        setFileStatus((prev) => ({ ...prev, video: "Video updated" }));
+        toast.success("Video updated");
+      }
     }
+  
+    return () => {
+      isMounted = false; // Prevent state updates on unmounted component
+    };
   }, [formData.video]);
-
+  
   const FileInput = ({ type, accept, onChange }) => (
     <div
       className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 

@@ -58,21 +58,36 @@
       window.scrollTo(0, 0); // Scrolls to the top-left corner of the document
     }, []); // Runs only once when the component mounts
     const [videos, setVideos] = useState([]);
-  useEffect(() => {
-  const fetchVideo = async () => {
-    try {
-      toast.loading("Fetching videos...");
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/videos`);
-      const data = response.data;
-      setVideos(data);
-    } catch (error) {
-      console.error('Fetch video error:', error);
-    }finally{
-      toast.dismiss();
-    }
-  }
-  fetchVideo();
-  }, []);
+    useEffect(() => {
+      const controller = new AbortController(); // Create an AbortController instance
+    
+      const fetchVideo = async () => {
+        try {
+          toast.loading("Fetching videos...");
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/videos`, {
+            signal: controller.signal, // Attach the signal to the request
+          });
+          const data = response.data;
+          setVideos(data);
+        } catch (error) {
+          if (controller.signal.aborted) {
+            console.log('Fetch video aborted:', error.message);
+          } else {
+            console.error('Fetch video error:', error);
+          }
+        } finally {
+          toast.dismiss();
+        }
+      };
+    
+      fetchVideo();
+    
+      // Cleanup function to abort the request
+      return () => {
+        controller.abort();
+      };
+    }, []);
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8">
         <div className="max-w-6xl mx-auto">
@@ -95,21 +110,36 @@
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentVideo,setCurrentVideo]=useState(null);
     useEffect(() => {
+      const source = axios.CancelToken.source(); // Create a cancel token
+  
       const fetchVideo = async () => {
+        toast.loading("Fetching video...");
         try {
-          toast.loading("Fetching video...");
-          const response = await axios.get(`${import.meta.env.VITE_API_URL}/videos/${id}`);
-          const data = response.data;
-          setCurrentVideo(data);
-          console.log(currentVideo);
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/videos/${id}`, {
+            cancelToken: source.token, // Attach the cancel token to the request
+          });
+          setCurrentVideo(response.data);
         } catch (error) {
-          console.error('Fetch video error:', error);
-        }finally{
+          if (axios.isCancel(error)) {
+            console.log('Fetch video canceled:', error.message);
+          } else {
+            console.error('Fetch video error:', error);
+            toast.error("Failed to fetch video.");
+          }
+        } finally {
           toast.dismiss();
         }
+      };
+  
+      if (id) {
+        fetchVideo();
       }
-      fetchVideo();
-    }, [id])
+  
+      // Cleanup function to cancel the request
+      return () => {
+        source.cancel('Operation canceled by the user.');
+      };
+    }, [id]);
 
     if (!currentVideo) {
       return (
